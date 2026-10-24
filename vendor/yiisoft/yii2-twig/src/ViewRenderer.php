@@ -1,12 +1,15 @@
 <?php
 /**
- * @link http://www.yiiframework.com/
+ * @link https://www.yiiframework.com/
  * @copyright Copyright (c) 2008 Yii Software LLC
- * @license http://www.yiiframework.com/license/
+ * @license https://www.yiiframework.com/license/
  */
 
 namespace yii\twig;
 
+use Twig\Environment;
+use Twig\Lexer;
+use Twig\Loader\FilesystemLoader;
 use Yii;
 use yii\base\View;
 use yii\base\ViewRenderer as BaseViewRenderer;
@@ -14,7 +17,7 @@ use yii\base\ViewRenderer as BaseViewRenderer;
 /**
  * TwigViewRenderer allows you to use Twig templates in views.
  *
- * @property array $lexerOptions @see self::$lexerOptions. This property is write-only.
+ * @property-write array $lexerOptions @see self::$lexerOptions.
  *
  * @author Alexander Makarov <sam@rmcreative.ru>
  * @since 2.0
@@ -28,7 +31,7 @@ class ViewRenderer extends BaseViewRenderer
     public $cachePath = '@runtime/Twig/cache';
     /**
      * @var array Twig options.
-     * @see http://twig.sensiolabs.org/doc/api.html#environment-options
+     * @see https://twig.symfony.com/doc/api.html#environment-options
      */
     public $options = [];
     /**
@@ -68,7 +71,7 @@ class ViewRenderer extends BaseViewRenderer
      *     'tag_variable' => ['{$', '}']
      * ]
      * ```
-     * @see http://twig.sensiolabs.org/doc/recipes.html#customizing-the-syntax
+     * @see https://twig.symfony.com/doc/recipes.html#customizing-the-syntax
      */
     public $lexerOptions = [];
     /**
@@ -86,14 +89,14 @@ class ViewRenderer extends BaseViewRenderer
      */
     public $uses = [];
     /**
-     * @var \Twig_Environment twig environment object that renders twig templates
+     * @var Environment twig environment object that renders twig templates
      */
     public $twig;
     /**
      * @var string twig namespace to use in templates
      * @since 2.0.5
      */
-    public $twigViewsNamespace = \Twig_Loader_Filesystem::MAIN_NAMESPACE;
+    public $twigViewsNamespace = FilesystemLoader::MAIN_NAMESPACE;
     /**
      * @var string twig namespace to use in modules templates
      * @since 2.0.5
@@ -110,14 +113,23 @@ class ViewRenderer extends BaseViewRenderer
      */
     public $twigFallbackPaths = [];
 
+    /**
+     * Custom Extension for twig
+     * Need this in the render function for twig3.9 fix.
+     *
+     * @var Extension
+     */
+    protected $extension;
+
 
     public function init()
     {
         // Create environment with empty loader
-        $loader = new Twig_Empty_Loader();
-        $this->twig = new \Twig_Environment($loader, array_merge([
+        $loader = new TwigEmptyLoader();
+        $this->twig = new Environment($loader, array_merge([
             'cache' => Yii::getAlias($this->cachePath),
             'charset' => Yii::$app->charset,
+            'use_yield' => false
         ], $this->options));
 
         // Adding custom globals (objects or static classes)
@@ -135,7 +147,8 @@ class ViewRenderer extends BaseViewRenderer
             $this->addFilters($this->filters);
         }
 
-        $this->addExtensions([new Extension($this->uses)]);
+        $this->extension = new Extension($this->uses);
+        $this->addExtensions([$this->extension]);
 
         // Adding custom extensions
         if (!empty($this->extensions)) {
@@ -160,7 +173,7 @@ class ViewRenderer extends BaseViewRenderer
     public function render($view, $file, $params)
     {
         $this->twig->addGlobal('this', $view);
-        $loader = new \Twig_Loader_Filesystem(dirname($file));
+        $loader = new FilesystemLoader(dirname($file));
         if ($view instanceof View) {
             $this->addFallbackPaths($loader, $view->theme);
         }
@@ -173,13 +186,36 @@ class ViewRenderer extends BaseViewRenderer
             $this->setLexerOptions($this->lexerOptions);
         }
 
-        return $this->twig->render(pathinfo($file, PATHINFO_BASENAME), $params);
+        $content = $this->twig->render(pathinfo($file, PATHINFO_BASENAME), $params);
+        /**
+         * Hack to work with twig3.9.
+         * Explanation:
+         * Twig 3.9 does not hold the contents of the template in the output buffer anymore,
+         * but it still reads the contents from it (if we stick to use `use_yield` false)
+         * (it was an internal implementation and this package relied on this fact)
+         * This means that when the endPage method in the yii2 View class wants to read the output buffer
+         * to replace the placeholders it will be empty, because twig has already emptied it (and does not hold its state anymore).
+         *
+         * By not doing anything in the twig function call yet (see yii\twig\Extension::viewHelper), we can work around this limitation
+         * by calling the endPage function with the twig render results in the buffer after twig has already done its work.
+         */
+        if ($this->extension->withViewEndPage()) {
+            // $view->endPage will end the current buffer when calling ob_get_clean and echo the modified(replaced placeholders) contents.
+            // this means that we need 2 levels deep output buffer.
+            ob_start();
+            ob_start();
+            echo $content;
+            $view->endPage();
+            $content = ob_get_clean();
+        }
+
+        return $content;
     }
 
     /**
      * Adds aliases
      *
-     * @param \Twig_Loader_Filesystem $loader
+     * @param FilesystemLoader $loader
      * @param array $aliases
      */
     protected function addAliases($loader, $aliases)
@@ -196,8 +232,8 @@ class ViewRenderer extends BaseViewRenderer
     /**
      * Adds fallback paths to twig loader
      *
-     * @param \Twig_Loader_Filesystem $loader
-     * @param \yii\base\Theme|null $theme
+     * @param FilesystemLoader $loader
+     * @param yii\base\Theme|null $theme
      * @since 2.0.5
      */
     protected function addFallbackPaths($loader, $theme)
@@ -311,7 +347,7 @@ class ViewRenderer extends BaseViewRenderer
      */
     public function setLexerOptions($options)
     {
-        $lexer = new \Twig_Lexer($this->twig, $options);
+        $lexer = new Lexer($this->twig, $options);
         $this->twig->setLexer($lexer);
     }
 
@@ -323,7 +359,7 @@ class ViewRenderer extends BaseViewRenderer
      */
     private function _addCustom($classType, $elements)
     {
-        $classFunction = 'Twig_Simple' . $classType;
+        $classFunction = 'Twig\Twig' . $classType;
 
         foreach ($elements as $name => $func) {
             $twigElement = null;
@@ -337,7 +373,7 @@ class ViewRenderer extends BaseViewRenderer
                 case is_array($func) && is_callable($func[0]):
                     $twigElement = new $classFunction($name, $func[0], (!empty($func[1]) && is_array($func[1])) ? $func[1] : []);
                     break;
-                case $func instanceof \Twig_SimpleFunction || $func instanceof \Twig_SimpleFilter:
+                case $func instanceof \Twig\TwigFunction || $func instanceof \Twig\TwigFilter:
                     $twigElement = $func;
             }
 

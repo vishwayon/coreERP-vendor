@@ -1,8 +1,9 @@
 <?php
+
 /**
- * @link http://www.yiiframework.com/
+ * @link https://www.yiiframework.com/
  * @copyright Copyright (c) 2008 Yii Software LLC
- * @license http://www.yiiframework.com/license/
+ * @license https://www.yiiframework.com/license/
  */
 
 namespace yii\debug\panels;
@@ -13,8 +14,8 @@ use yii\debug\Panel;
 /**
  * Debugger panel that collects and displays application configuration and environment.
  *
- * @property array $extensions Returns data about extensions. This property is read-only.
- * @property array $phpInfo Returns the BODY contents of the phpinfo() output. This property is read-only.
+ * @property-read array $extensions
+ * @property-read array $phpInfo
  *
  * @author Qiang Xue <qiang.xue@gmail.com>
  * @since 2.0
@@ -73,9 +74,11 @@ class ConfigPanel extends Panel
         $pinfo = ob_get_contents();
         ob_end_clean();
         $phpinfo = preg_replace('%^.*<body>(.*)</body>.*$%ms', '$1', $pinfo);
-        $phpinfo = str_replace('<table',
+        $phpinfo = str_replace(
+            '<table',
             '<div class="table-responsive"><table class="table table-condensed table-bordered table-striped table-hover config-php-info-table" ',
-            $phpinfo);
+            $phpinfo
+        );
         $phpinfo = str_replace('</table>', '</table></div>', $phpinfo);
         $phpinfo = str_replace('<div class="center">', '<div class="phpinfo">', $phpinfo);
         return $phpinfo;

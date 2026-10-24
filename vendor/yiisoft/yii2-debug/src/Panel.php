@@ -1,8 +1,9 @@
 <?php
+
 /**
- * @link http://www.yiiframework.com/
+ * @link https://www.yiiframework.com/
  * @copyright Copyright (c) 2008 Yii Software LLC
- * @license http://www.yiiframework.com/license/
+ * @license https://www.yiiframework.com/license/
  */
 
 namespace yii\debug;
@@ -12,15 +13,18 @@ use yii\base\Component;
 use yii\helpers\ArrayHelper;
 use yii\helpers\Url;
 use yii\helpers\VarDumper;
+use yii\helpers\StringHelper;
 
 /**
  * Panel is a base class for debugger panel classes. It defines how data should be collected,
  * what should be displayed at debug toolbar and on debugger details view.
  *
- * @property string $detail Content that is displayed in debugger detail view. This property is read-only.
- * @property string $name Name of the panel. This property is read-only.
- * @property string $summary Content that is displayed at debug toolbar. This property is read-only.
- * @property string $url URL pointing to panel detail view. This property is read-only.
+ * @property-read string $detail Content that is displayed in debugger detail view.
+ * @property FlattenException|null $error Note that the type of this property differs in getter and setter.
+ * See [[getError()]] and [[setError()]] for details.
+ * @property-read string $name Name of the panel.
+ * @property-read string $summary Content that is displayed at debug toolbar.
+ * @property-read string $url URL pointing to panel detail view.
  *
  * @author Qiang Xue <qiang.xue@gmail.com>
  * @since 2.0
@@ -110,7 +114,7 @@ class Panel extends Component
     public function getUrl($additionalParams = null)
     {
         $route = [
-            '/' . $this->module->id . '/default/view',
+            '/' . $this->module->getUniqueId() . '/default/view',
             'panel' => $this->id,
             'tag' => $this->tag,
         ];
@@ -130,6 +134,14 @@ class Panel extends Component
      */
     public function getTraceLine($options)
     {
+        /**
+         * If an internal PHP function, such as `call_user_func`, in the backtrace, the 'file' and 'line' not be available.
+         * @see https://www.php.net/manual/en/function.debug-backtrace.php#59713
+         */
+        if (!isset($options['file'])) {
+            return VarDumper::dumpAsString($options);
+        }
+
         if (!isset($options['text'])) {
             $options['text'] = "{$options['file']}:{$options['line']}";
         }
@@ -139,6 +151,16 @@ class Panel extends Component
         }
 
         $options['file'] = str_replace('\\', '/', $options['file']);
+
+        foreach ($this->module->tracePathMappings as $old => $new) {
+            $old = rtrim(str_replace('\\', '/', $old), '/') . '/';
+            if (StringHelper::startsWith($options['file'], $old)) {
+                $new = rtrim(str_replace('\\', '/', $new), '/') . '/';
+                $options['file'] = $new . substr($options['file'], strlen($old));
+                break;
+            }
+        }
+
         $rawLink = $traceLine instanceof \Closure ? $traceLine($options, $this) : $traceLine;
         return strtr($rawLink, ['{file}' => $options['file'], '{line}' => $options['line'], '{text}' => $options['text']]);
     }

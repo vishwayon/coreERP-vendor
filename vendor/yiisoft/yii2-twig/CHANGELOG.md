@@ -1,6 +1,59 @@
 Yii Framework 2 twig extension Change Log
 =========================================
 
+2.5.1 February 13, 2025
+-----------------------
+
+- Bug #159: Fixed string interpolation format for php 8.2 (qwerty199369)
+
+
+2.5.0 May 09, 2024
+------------------
+
+- Bug #154: Support for Twig 3.9  
+  In twig 3.9 there were many internal changes that might affect and break codebases using twig:
+  - Internal functions (including twig_get_attribute) has been moved and renamed.
+  - The internal working of twig does not store template state in the output buffer anymore.  
+    This means if a custom twig function reads and modifies the output buffer, it might not work as expected.
+
+
+2.4.3 April 29, 2024
+--------------------
+
+- Bug #153: Prevent Twig 3.9 from installing (schmunk42)
+
+
+2.4.2 September 04, 2022
+------------------------
+
+- Chg #134: Allow installing on PHP 8.1 (sircovsw)
+
+
+2.4.1 November 10, 2020
+-----------------------
+
+- Chg: Allow installing on PHP 8 (samdark)
+
+
+2.4.0 March 13, 2020
+--------------------
+
+- Enh #116: Add `t()` function (samdark)
+- Enh #123: Upgrade to Twig 3 (andrew-nuwber)
+
+
+2.3.0 February 06, 2020
+-----------------------
+
+- Bug #115: Replace deprecated PSR-0 classes and add compatibility for Twig 2.7+ versions (boliver20)
+
+
+2.2.2 February 06, 2020
+-----------------------
+
+- Bug #103: Fixed HtmlHelperExtension issue (boliver20)
+
+
 2.2.1 September 24, 2018
 ------------------------
 

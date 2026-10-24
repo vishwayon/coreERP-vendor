@@ -1,9 +1,9 @@
 <?php
 
-use yii\widgets\ActiveForm;
-use yii\helpers\Html;
 use yii\debug\UserswitchAsset;
 use yii\grid\GridView;
+use yii\helpers\Html;
+use yii\widgets\ActiveForm;
 
 /* @var $this \yii\web\View */
 /* @var $panel yii\debug\panels\UserPanel */
@@ -22,7 +22,9 @@ UserswitchAsset::register($this);
             ]);
             echo $formSet->field(
                 $panel->userSwitch,
-                'user[id]', ['options' => ['class' => '']])
+                'user[id]',
+                ['options' => ['class' => '']]
+            )
                 ->textInput(['id' => 'user_id', 'name' => 'user_id'])
                 ->label('Switch User');
             echo Html::submitButton('Switch', ['class' => 'btn btn-primary']);
@@ -41,7 +43,10 @@ UserswitchAsset::register($this);
                 ]);
                 echo Html::submitButton('Reset to <span class="yii-debug-toolbar__label yii-debug-toolbar__label_info">' .
                     $panel->userSwitch->getMainUser()->getId() .
-                    '</span>', ['class' => 'btn btn-outline-secondary']);
+                    '</span>', [
+                    'class' => 'btn btn-outline-secondary',
+                    'id' => 'debug-userswitch__reset-identity-button'
+                ]);
                 ActiveForm::end();
             }
             ?>

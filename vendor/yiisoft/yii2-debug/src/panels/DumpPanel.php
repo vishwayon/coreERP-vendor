@@ -1,13 +1,15 @@
 <?php
+
 /**
- * @link http://www.yiiframework.com/
+ * @link https://www.yiiframework.com/
  * @copyright Copyright (c) 2008 Yii Software LLC
- * @license http://www.yiiframework.com/license/
+ * @license https://www.yiiframework.com/license/
  */
 
 namespace yii\debug\panels;
 
 use Yii;
+use yii\helpers\Html;
 use yii\log\Logger;
 use yii\debug\models\search\Log;
 use yii\debug\Panel;
@@ -89,13 +91,21 @@ class DumpPanel extends Panel
             $except = $this->module->panels['router']->getCategories();
         }
 
-        $messages = $this->getLogMessages(Logger::LEVEL_TRACE, $this->categories, $except, true);
+        $messages = $this->getLogMessages(Logger::LEVEL_TRACE, $this->categories, $except);
+
+        foreach ($messages as &$message) {
+            if (!isset($message[0])) {
+                continue;
+            }
+
+            $message[0] = $this->varDump($message[0]);
+        }
 
         return $messages;
     }
 
     /**
-     * Called by view to format the dumped variable.
+     * Called by `save()` to format the dumped variable.
      *
      * @since 2.1.3
      */

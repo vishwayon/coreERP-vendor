@@ -1,8 +1,9 @@
 <?php
+
 /**
- * @link http://www.yiiframework.com/
+ * @link https://www.yiiframework.com/
  * @copyright Copyright (c) 2008 Yii Software LLC
- * @license http://www.yiiframework.com/license/
+ * @license https://www.yiiframework.com/license/
  */
 
 namespace yii\debug\panels;
@@ -84,14 +85,30 @@ class LogPanel extends Panel
         if ($this->_models === null || $refresh) {
             $this->_models = [];
 
+            $previousId = null;
+            $previousTime = null;
+            $id = 1;
             foreach ($this->data['messages'] as $message) {
-                $this->_models[] = [
+                if (is_null($previousTime)) {
+                    $previousTime = $message[3];
+                } else {
+                    $this->_models[$previousId]['id_of_next'] = $id;
+                }
+                $this->_models[$id] = [
+                    'id' => $id,
                     'message' => $message[0],
                     'level' => $message[1],
                     'category' => $message[2],
                     'time' => $message[3] * 1000, // time in milliseconds
+                    'time_of_previous' => $previousTime * 1000, // time in milliseconds
+                    'time_since_previous' => $message[3] - $previousTime,
+                    'id_of_previous' => $previousId,
+                    'id_of_next' => null,
                     'trace' => isset($message[4]) ? $message[4] : [],
                 ];
+                $previousId = $id;
+                $previousTime = $message[3];
+                $id++;
             }
         }
 

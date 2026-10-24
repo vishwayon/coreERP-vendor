@@ -1,17 +1,20 @@
 <?php
 /**
- * @link http://www.yiiframework.com/
+ * @link https://www.yiiframework.com/
  * @copyright Copyright (c) 2008 Yii Software LLC
- * @license http://www.yiiframework.com/license/
+ * @license https://www.yiiframework.com/license/
  */
 
 namespace yii\twig;
 
+use Twig\Extension\AbstractExtension;
+use Twig\TwigFunction;
 use yii\base\InvalidCallException;
 use yii\helpers\Inflector;
 use yii\helpers\StringHelper;
 use yii\helpers\Url;
 use yii\web\AssetBundle;
+
 
 /**
  * Extension provides Yii-specific syntax for Twig templates.
@@ -19,7 +22,7 @@ use yii\web\AssetBundle;
  * @author Andrey Grachov <andrey.grachov@gmail.com>
  * @author Alexander Makarov <sam@rmcreative.ru>
  */
-class Extension extends \Twig_Extension
+class Extension extends AbstractExtension
 {
     /**
      * @var array used namespaces
@@ -33,7 +36,19 @@ class Extension extends \Twig_Extension
      * @var array used widgets
      */
     protected $widgets = [];
+    /**
+     * Little hack to work with twig 3.9
+     * see explanation at the end of yii\twig\ViewRenderer::render function
+     *
+     * @var bool
+     */
+    protected $viewEndPage = false;
 
+
+    public function withViewEndPage(): bool
+    {
+        return $this->viewEndPage;
+    }
 
     /**
      * Creates new instance
@@ -65,24 +80,25 @@ class Extension extends \Twig_Extension
             'is_safe' => ['html'],
         ];
         $functions = [
-            new \Twig_SimpleFunction('use', [$this, 'addUses'], $options),
-            new \Twig_SimpleFunction('*_begin', [$this, 'beginWidget'], $options),
-            new \Twig_SimpleFunction('*_end', [$this, 'endWidget'], $options),
-            new \Twig_SimpleFunction('widget_end', [$this, 'endWidget'], $options),
-            new \Twig_SimpleFunction('*_widget', [$this, 'widget'], $options),
-            new \Twig_SimpleFunction('path', [$this, 'path']),
-            new \Twig_SimpleFunction('url', [$this, 'url']),
-            new \Twig_SimpleFunction('void', function(){}),
-            new \Twig_SimpleFunction('set', [$this, 'setProperty']),
+            new TwigFunction('use', [$this, 'addUses'], $options),
+            new TwigFunction('*_begin', [$this, 'beginWidget'], $options),
+            new TwigFunction('*_end', [$this, 'endWidget'], $options),
+            new TwigFunction('widget_end', [$this, 'endWidget'], $options),
+            new TwigFunction('*_widget', [$this, 'widget'], $options),
+            new TwigFunction('path', [$this, 'path']),
+            new TwigFunction('url', [$this, 'url']),
+            new TwigFunction('void', function(){}),
+            new TwigFunction('set', [$this, 'setProperty']),
+            new TwigFunction('t', [\Yii::class,'t']),
         ];
 
         $options = array_merge($options, [
             'needs_context' => true,
         ]);
-        $functions[] = new \Twig_SimpleFunction('register_*', [$this, 'registerAsset'], $options);
-        $functions[] = new \Twig_SimpleFunction('register_asset_bundle', [$this, 'registerAssetBundle'], $options);
+        $functions[] = new TwigFunction('register_*', [$this, 'registerAsset'], $options);
+        $functions[] = new TwigFunction('register_asset_bundle', [$this, 'registerAssetBundle'], $options);
         foreach (['begin_page', 'end_page', 'begin_body', 'end_body', 'head'] as $helper) {
-            $functions[] = new \Twig_SimpleFunction($helper, [$this, 'viewHelper'], $options);
+            $functions[] = new TwigFunction($helper, [$this, 'viewHelper'], $options);
         }
         return $functions;
     }
@@ -190,7 +206,11 @@ class Extension extends \Twig_Extension
     public function viewHelper($context, $name = null)
     {
         if ($name !== null && isset($context['this'])) {
-            $this->call($context['this'], Inflector::variablize($name));
+            if ($name === 'end_page') {
+                $this->viewEndPage = true;
+            } else {
+                $this->call($context['this'], Inflector::variablize($name));
+            }
         }
     }
 

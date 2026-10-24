@@ -13,22 +13,31 @@
     },
     "minimum-stability": "stable",
     "require": {
-        "php": ">=7.3",
-        "yiisoft/yii2": "2.0.19",
+        "php": ">=8.3",
+        "yiisoft/yii2": "~2.0.55",
         "yiisoft/yii2-bootstrap": "2.0.10",
         "yiisoft/yii2-swiftmailer": "*",
         "athari/yalinqo": "~2.0",
-        "yiisoft/yii2-twig": "^2.0"
+        "yiisoft/yii2-twig": "^2.0",
+        "yiisoft/yii2-authclient": "~2.2.0",
+        "kartik-v/yii2-widget-sidenav": "*",
+        "guzzlehttp/guzzle": "~7.16.0"
     },
     "require-dev": {
-        "yiisoft/yii2-debug": "*",
-        "yiisoft/yii2-authclient": "~2.0.0",
-        "kartik-v/yii2-widget-sidenav": "*",
-        "guzzlehttp/guzzle": "~5.3|~6.0"
+        "yiisoft/yii2-debug": "*"
     },
     "config": {
-        "process-timeout": 1800
+        "process-timeout": 1800,
+        "allow-plugins": {
+            "yiisoft/yii2-composer": true
+        }
     },
+    "repositories": [
+        {
+            "type": "composer",
+            "url": "https://asset-packagist.org"
+        }
+    ],
     "extra": {
         "asset-installer-paths": {
             "npm-asset-library": "vendor/npm",

@@ -1,8 +1,8 @@
 <?php
 /**
- * @link http://www.yiiframework.com/
+ * @link https://www.yiiframework.com/
  * @copyright Copyright (c) 2008 Yii Software LLC
- * @license http://www.yiiframework.com/license/
+ * @license https://www.yiiframework.com/license/
  */
 
 namespace yii\helpers;
@@ -16,9 +16,4 @@ namespace yii\helpers;
  */
 class Json extends BaseJson
 {
-    // Override base function for faster processing, avoiding overhead
-    // we do not use expressions in json
-    static function encode($value, $options = 320) {
-        return json_encode($value, $options);
-    }
 }
