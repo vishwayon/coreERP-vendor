@@ -1,14 +1,14 @@
 {
     "name": "yiisoft/yii2-authclient",
     "description": "External authentication via OAuth and OpenID for the Yii framework",
-    "keywords": ["yii2", "OAuth", "OpenID", "auth"],
+    "keywords": ["yii2", "OAuth", "OpenID", "OpenID Connect", "auth", "api"],
     "type": "yii2-extension",
     "license": "BSD-3-Clause",
     "support": {
         "issues": "https://github.com/yiisoft/yii2-authclient/issues",
-        "forum": "http://www.yiiframework.com/forum/",
-        "wiki": "http://www.yiiframework.com/wiki/",
-        "irc": "irc://irc.freenode.net/yii",
+        "forum": "https://www.yiiframework.com/forum/",
+        "wiki": "https://www.yiiframework.com/wiki/",
+        "irc": "ircs://irc.libera.chat:6697/yii",
         "source": "https://github.com/yiisoft/yii2-authclient"
     },
     "authors": [
@@ -18,15 +18,56 @@
         }
     ],
     "require": {
-        "yiisoft/yii2": ">=2.0.4",
-        "ext-curl": "*"
+        "php": ">=7.4",
+        "yiisoft/yii2": "~2.0.55",
+        "yiisoft/yii2-httpclient": "~2.0.5",
+        "paragonie/random_compat": ">=1"
     },
+    "require-dev": {
+        "phpunit/phpunit": "^9.6",
+        "phpstan/phpstan": "^2.1",
+        "phpstan/phpstan-phpunit": "^2.0",
+        "rector/rector": "^2.6",
+        "mspirkov/yii2-rector": "^0.2",
+        "friendsofphp/php-cs-fixer": "^3.95"
+    },
+    "suggest": {
+        "web-token/jwt-checker": "required for JWS, JWT or JWK related flows like OpenIDConnect",
+        "web-token/jwt-key-mgmt": "required for JWS, JWT or JWK related flows like OpenIDConnect",
+        "web-token/jwt-signature": "required for JWS, JWT or JWK related flows like OpenIDConnect",
+        "web-token/jwt-signature-algorithm-hmac": "required for JWS, JWT or JWK related flows like OpenIDConnect",
+        "web-token/jwt-signature-algorithm-ecdsa": "required for JWS, JWT or JWK related flows like OpenIDConnect",
+        "web-token/jwt-signature-algorithm-rsa": "required for JWS, JWT or JWK related flows like OpenIDConnect"
+    },
+    "repositories": [
+        {
+            "type": "composer",
+            "url": "https://asset-packagist.org"
+        }
+    ],
     "autoload": {
-        "psr-4": { "yii\\authclient\\": "" }
+        "psr-4": {
+            "yii\\authclient\\": "src"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": { "yiiunit\\extensions\\authclient\\": "tests" }
     },
     "extra": {
         "branch-alias": {
             "dev-master": "2.0.x-dev"
         }
+    },
+    "config": {
+        "allow-plugins": {
+            "yiisoft/yii2-composer": true
+        }
+    },
+    "scripts": {
+        "cs": "./vendor/bin/php-cs-fixer check",
+        "cs-fix": "./vendor/bin/php-cs-fixer fix",
+        "static": "./vendor/bin/phpstan --memory-limit=-1",
+        "tests": "./vendor/bin/phpunit",
+        "rector": "./vendor/bin/rector"
     }
 }

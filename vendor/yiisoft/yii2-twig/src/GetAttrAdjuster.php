@@ -1,24 +1,29 @@
 <?php
 /**
- * @link http://www.yiiframework.com/
+ * @link https://www.yiiframework.com/
  * @copyright Copyright (c) 2008 Yii Software LLC
- * @license http://www.yiiframework.com/license/
+ * @license https://www.yiiframework.com/license/
  */
 
 namespace yii\twig;
 
+use Twig\Environment;
+use Twig\Node\Expression\GetAttrExpression;
+use Twig\Node\Node;
+use Twig\NodeVisitor\NodeVisitorInterface;
+
 /**
  * GetAttrAdjuster swaps Twig_Node_Expression_GetAttr nodes with [[GetAttr]] nodes.
  */
-class GetAttrAdjuster implements \Twig_NodeVisitorInterface
+class GetAttrAdjuster implements NodeVisitorInterface
 {
     /**
      * @inheritdoc
      */
-    public function enterNode(\Twig_Node $node, \Twig_Environment $env)
+    public function enterNode(Node $node, Environment $env): Node
     {
         // Is it a Twig_Node_Expression_GetAttr (and not a subclass)?
-        if (get_class($node) === \Twig_Node_Expression_GetAttr::class) {
+        if (get_class($node) === GetAttrExpression::class) {
             // "Clone" it into a GetAttr node
             $nodes = [
                 'node' => $node->getNode('node'),
@@ -40,7 +45,7 @@ class GetAttrAdjuster implements \Twig_NodeVisitorInterface
     /**
      * @inheritdoc
      */
-    public function leaveNode(\Twig_Node $node, \Twig_Environment $env)
+    public function leaveNode(Node $node, Environment $env): ?Node
     {
         return $node;
     }

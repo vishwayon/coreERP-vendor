@@ -66,7 +66,7 @@ ul.trace {
     white-space: normal;
 }
 
-#db-panel-detailed-grid table tbody tr td {
+.db-panel-detailed-grid table tbody tr td {
     position: relative;
 }
 
@@ -85,7 +85,7 @@ ul.trace {
     word-break: break-all;
 }
 
-#db-explain-all {
+.db-explain-all {
     position: absolute;
     bottom: 0;
     right: 0;
@@ -152,6 +152,20 @@ ul.assets {
 .logs-messages-table td {
     white-space: pre-wrap;
     word-break: break-all;
+}
+
+.word-break-keep {
+    white-space: nowrap !important;
+    word-break: keep-all !important;
+}
+
+.since-previous {
+    @extend .word-break-keep;
+
+    .button {
+        padding: 0 10px;
+        font-weight: bold;
+    }
 }
 
 .not-set {

@@ -1,6 +1,31 @@
 Yii Framework 2 composer extension Change Log
 =============================================
 
+2.0.11 February 13, 2025
+------------------------
+
+- Enh #38: Use `random_bytes` instead of `openssl_random_pseudo_bytes` if available (fetus_hina)
+
+
+2.0.10 June 24, 2020
+--------------------
+
+- Enh #31: Add Composer 2 parallel unzip compatibility (samdark)
+
+
+2.0.9 April 20, 2020
+--------------------
+
+- Bug #30: Fix PHP error when upgrading/downgrading a Yii2 extension (brandonkelly)
+- Enh #27: Support for Composer 2 (brandonkelly, cebe)
+
+
+2.0.8 July 16, 2019
+-------------------
+
+- Bug #23: Fixed another an error that would occur if the Zend OPcache extension was installed, but its "restrict_api" setting was enabled (Lachee)
+
+
 2.0.7 July 05, 2018
 -------------------
 

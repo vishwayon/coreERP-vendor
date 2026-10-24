@@ -1,15 +1,18 @@
 <?php
 /**
- * @link http://www.yiiframework.com/
+ * @link https://www.yiiframework.com/
  * @copyright Copyright (c) 2008 Yii Software LLC
- * @license http://www.yiiframework.com/license/
+ * @license https://www.yiiframework.com/license/
  */
 
 namespace yii\twig\html;
 
-abstract class BaseClassNode extends \Twig_Node
+use Twig\Node\Node;
+use Twig\Compiler;
+
+abstract class BaseClassNode extends Node
 {
-    public function compile(\Twig_Compiler $compiler)
+    public function compile(Compiler $compiler)
     {
         $name = $this->getAttribute('name')->getValue();
         $method = $this->getHelperMethod();

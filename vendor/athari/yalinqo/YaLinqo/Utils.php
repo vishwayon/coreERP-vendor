@@ -28,10 +28,10 @@ class Utils
     private static $compareFunctionToSortFlags = [
         null => SORT_REGULAR,
         'strcmp' => SORT_STRING,
-        'strcasecmp' => 10 /*SORT_STRING | SORT_FLAG_CASE*/,
+        'strcasecmp' => SORT_STRING | SORT_FLAG_CASE,
         'strcoll' => SORT_LOCALE_STRING,
         'strnatcmp' => SORT_NATURAL,
-        'strnatcasecmp' => 14 /*SORT_NATURAL | SORT_FLAG_CASE*/,
+        'strnatcasecmp' => SORT_NATURAL | SORT_FLAG_CASE,
     ];
 
     /** @internal */
@@ -150,7 +150,7 @@ class Utils
             $code = trim($code, " \r\n\t");
             if (strlen($code) > 0 && $code[0] != '{')
                 $code = "return {$code};";
-            $fun = @create_function($args, $code);
+            $fun = eval("return function($args) { $code };");
             if (!$fun)
                 throw new \InvalidArgumentException(self::ERROR_CANNOT_PARSE_LAMBDA);
             self::$lambdaCache[$closure][$closureArgs] = $fun;

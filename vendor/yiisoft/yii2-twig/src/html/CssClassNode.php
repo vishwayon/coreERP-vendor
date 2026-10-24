@@ -1,15 +1,18 @@
 <?php
 /**
- * @link http://www.yiiframework.com/
+ * @link https://www.yiiframework.com/
  * @copyright Copyright (c) 2008 Yii Software LLC
- * @license http://www.yiiframework.com/license/
+ * @license https://www.yiiframework.com/license/
  */
 
 namespace yii\twig\html;
 
+use Twig\Token;
+use Twig\Error\Error;
+
 class CssClassNode extends BaseClassNode
 {
-    public function __construct(\Twig_Token $name, $value, \Twig_Token $operator, $lineno = 0, $tag = null)
+    public function __construct(Token $name, $value, Token $operator, $lineno = 0, $tag = null)
     {
         parent::__construct(array('value' => $value), array('name' => $name, 'operator' => $operator), $lineno, $tag);
     }
@@ -23,7 +26,7 @@ class CssClassNode extends BaseClassNode
             case '-':
                 return 'removeCssClass';
             default:
-                throw new \Twig_Error("Operator {$operator} no found;");
+                throw new Error("Operator {$operator} no found;");
         }
     }
 }

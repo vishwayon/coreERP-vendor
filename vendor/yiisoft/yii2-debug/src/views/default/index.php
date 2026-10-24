@@ -3,6 +3,7 @@
 use yii\data\ArrayDataProvider;
 use yii\grid\GridView;
 use yii\helpers\Html;
+use yii\helpers\Url;
 
 /* @var $this \yii\web\View */
 /* @var $manifest array */
@@ -16,7 +17,7 @@ $this->title = 'Yii Debugger';
     <div id="yii-debug-toolbar" class="yii-debug-toolbar yii-debug-toolbar_position_top" style="display: none;">
         <div class="yii-debug-toolbar__bar">
             <div class="yii-debug-toolbar__block yii-debug-toolbar__title">
-                <a href="#">
+                <a href="<?= Url::to(['index']) ?>">
                     <img width="30" height="30" alt="" src="<?= \yii\debug\Module::getYiiLogo() ?>">
                 </a>
             </div>
@@ -50,10 +51,6 @@ $this->title = 'Yii Debugger';
                         return ['class' => 'table-danger'];
                     }
 
-                    if ($hasDbPanel && $this->context->module->panels['db']->isQueryCountCritical($model['sqlCount'])) {
-                        return ['class' => 'table-danger'];
-                    }
-
                     return [];
                 },
                 'pager' => [
@@ -82,8 +79,23 @@ $this->title = 'Yii Debugger';
                     [
                         'attribute' => 'time',
                         'value' => function ($data) {
-                            return '<span class="nowrap">' . Yii::$app->formatter->asDatetime($data['time'],
-                                    'yyyy-MM-dd HH:mm:ss') . '</span>';
+                            return '<span class="nowrap">' . Yii::$app->formatter->asDatetime($data['time'], 'yyyy-MM-dd HH:mm:ss') . '</span>';
+                        },
+                        'format' => 'html',
+                    ],
+                    [
+                        'attribute' => 'processingTime',
+                        'value' => function ($data) {
+                            return isset($data['processingTime']) ? number_format($data['processingTime'] * 1000) .
+                                ' ms' : '<span class="not-set">(not set)</span>';
+                        },
+                        'format' => 'html',
+                    ],
+                    [
+                        'attribute' => 'peakMemory',
+                        'value' => function ($data) {
+                            return isset($data['peakMemory']) ? sprintf('%.3f MB', $data['peakMemory'] /
+                                1048576) : '<span class="not-set">(not set)</span>';
                         },
                         'format' => 'html',
                     ],
@@ -95,17 +107,26 @@ $this->title = 'Yii Debugger';
                             /* @var $dbPanel \yii\debug\panels\DbPanel */
                             $dbPanel = $this->context->module->panels['db'];
 
+                            $title = "Executed {$data['sqlCount']} database queries.";
+                            $warning = '';
                             if ($dbPanel->isQueryCountCritical($data['sqlCount'])) {
-                                $content = Html::tag('b', $data['sqlCount']) . ' ' . Html::tag('span', '&#x26a0;');
-
-                                return Html::a($content, ['view', 'panel' => 'db', 'tag' => $data['tag']], [
-                                    'title' => 'Too many queries. Allowed count is ' . $dbPanel->criticalQueryThreshold,
-                                ]);
-
+                                $warning .= 'Too many queries. Allowed count is ' . $dbPanel->criticalQueryThreshold;
                             }
-                            return $data['sqlCount'];
+                            if (!empty($data['excessiveCallersCount'])) {
+                                $warning .= ($warning ? ' &#10;' : '') . $data['excessiveCallersCount'] . ' '
+                                    . ($data['excessiveCallersCount'] == 1 ? 'caller is' : 'callers are')
+                                    . ' making too many calls.';
+                            }
+
+                            $content = $data['sqlCount'];
+                            if ($warning) {
+                                $content .= ' <span title="' . $warning . '">&#x26a0;</span>';
+                            }
+
+                            return '<a href="' . Url::to(['view', 'panel' => 'db', 'tag' => $data['tag']]) . '"
+                                        title="' . $title . '">' . $content . '</a>';
                         },
-                        'format' => 'html',
+                        'format' => 'raw',
                     ] : null,
                     [
                         'attribute' => 'mailCount',
@@ -118,7 +139,8 @@ $this->title = 'Yii Debugger';
                             'post' => 'POST',
                             'delete' => 'DELETE',
                             'put' => 'PUT',
-                            'head' => 'HEAD'
+                            'head' => 'HEAD',
+                            'command' => 'COMMAND'
                         ]
                     ],
                     [
@@ -130,16 +152,17 @@ $this->title = 'Yii Debugger';
                     ],
                     [
                         'attribute' => 'url',
-                        'label' => 'URL',
+                        'label' => 'URL/Command',
                     ],
                     [
                         'attribute' => 'statusCode',
                         'value' => function ($data) {
                             $statusCode = $data['statusCode'];
+                            $method = $data['method'];
                             if ($statusCode === null) {
                                 $statusCode = 200;
                             }
-                            if ($statusCode >= 200 && $statusCode < 300) {
+                            if (($statusCode >= 200 && $statusCode < 300) || ($method == 'COMMAND' && $statusCode == 0)) {
                                 $class = 'badge-success';
                             } elseif ($statusCode >= 300 && $statusCode < 400) {
                                 $class = 'badge-info';
@@ -159,7 +182,7 @@ $this->title = 'Yii Debugger';
     </div>
 </div>
 <script type="text/javascript">
-    if (!window.frameElement) {
+    if (window.top == window) {
         document.querySelector('#yii-debug-toolbar').style.display = 'block';
     }
 </script>

@@ -1,8 +1,9 @@
 <?php
+
 /**
- * @link http://www.yiiframework.com/
+ * @link https://www.yiiframework.com/
  * @copyright Copyright (c) 2008 Yii Software LLC
- * @license http://www.yiiframework.com/license/
+ * @license https://www.yiiframework.com/license/
  */
 
 namespace yii\debug\actions\db;
@@ -13,8 +14,6 @@ use yii\web\HttpException;
 
 /**
  * ExplainAction provides EXPLAIN information for SQL queries
- *
- * @property \yii\debug\controllers\DefaultController|\yii\web\Controller|\yii\console\Controller $controller the controller that owns this action
  *
  * @author Laszlo <github@lvlconsultancy.nl>
  * @since 2.0.6
@@ -52,14 +51,20 @@ class ExplainAction extends Action
 
         $results = $this->panel->getDb()->createCommand('EXPLAIN ' . $query)->queryAll();
 
-        $output[] = '<table class="table"><thead><tr>' . implode(array_map(function ($key) {
+        $output[] = '<table class="table"><thead><tr>' . implode(array_map(
+            function ($key) {
                 return '<th>' . $key . '</th>';
-            }, array_keys($results[0]))) . '</tr></thead><tbody>';
+            },
+            array_keys($results[0])
+        )) . '</tr></thead><tbody>';
 
         foreach ($results as $result) {
-            $output[] = '<tr>' . implode(array_map(function ($value) {
+            $output[] = '<tr>' . implode(array_map(
+                function ($value) {
                     return '<td>' . (empty($value) ? 'NULL' : htmlspecialchars($value)) . '</td>';
-                }, $result)) . '</tr>';
+                },
+                $result
+            )) . '</tr>';
         }
         $output[] = '</tbody></table>';
         return implode($output);
